@@ -34,6 +34,8 @@ namespace DncPdfReader
     {
         private NavigationHelper navigationHelper;
         private ObservableDictionary defaultViewModel = new ObservableDictionary();
+        private StorageFolder m_storageFolder;
+        private bool m_stopRendering = false;
 
         enum RENDEROPTIONS
         {
@@ -112,15 +114,21 @@ namespace DncPdfReader
 
                 if (pdfDocument != null && pdfDocument.PageCount > 0)
                 {
+                    string uniqueName = "DncPdfReader_Temp_PDF";
+                    m_storageFolder = await ApplicationData.Current.TemporaryFolder.CreateFolderAsync(uniqueName, CreationCollisionOption.ReplaceExisting);
+
                     //Get Pdf page
                     for (int pageIndex = 0; pageIndex < pdfDocument.PageCount; pageIndex++)
                     {
+                        System.Diagnostics.Debug.WriteLine("Rendering pdf page");
+                        if (m_stopRendering == true)
+                            break;
+
                         var pdfPage = pdfDocument.GetPage((uint)pageIndex);
                         if (pdfPage != null)
                         {
                             // next, generate a bitmap of the page
-                            StorageFolder tempFolder = ApplicationData.Current.TemporaryFolder;
-                            StorageFile pngFile = await tempFolder.CreateFileAsync(Guid.NewGuid().ToString() + ".png", CreationCollisionOption.ReplaceExisting);
+                            StorageFile pngFile = await m_storageFolder.CreateFileAsync(Guid.NewGuid().ToString() + ".png", CreationCollisionOption.ReplaceExisting);
 
                             if (pngFile != null)
                             {
@@ -282,11 +290,28 @@ namespace DncPdfReader
             navigationHelper.OnNavigatedTo(e);
         }
 
-        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        protected override async void OnNavigatedFrom(NavigationEventArgs e)
         {
+            m_stopRendering = true;
+            await CleanTempFolder();
+
             navigationHelper.OnNavigatedFrom(e);
         }
 
+
+        private async System.Threading.Tasks.Task CleanTempFolder()
+        {
+            try
+            {
+                //var tempFolder = await ApplicationData.Current.TemporaryFolder.GetFolderAsync(_tempFolderName);
+                if (m_storageFolder != null)
+                    await m_storageFolder.DeleteAsync();
+            }
+            catch
+            {
+                //Nothing to clean or error
+            }
+        }
         #endregion
     }
 }
