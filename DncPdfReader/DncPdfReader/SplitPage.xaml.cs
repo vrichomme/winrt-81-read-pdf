@@ -114,13 +114,13 @@ namespace DncPdfReader
 
                 if (pdfDocument != null && pdfDocument.PageCount > 0)
                 {
-                    string uniqueName = "DncPdfReader_Temp_PDF";
+                    string uniqueName = "DncPdfReader_Temp_PDF_x4201";
                     m_storageFolder = await ApplicationData.Current.TemporaryFolder.CreateFolderAsync(uniqueName, CreationCollisionOption.ReplaceExisting);
 
                     //Get Pdf page
                     for (int pageIndex = 0; pageIndex < pdfDocument.PageCount; pageIndex++)
                     {
-                        System.Diagnostics.Debug.WriteLine("Rendering pdf page");
+                        //System.Diagnostics.Debug.WriteLine("Rendering pdf page");
                         if (m_stopRendering == true)
                             break;
 
